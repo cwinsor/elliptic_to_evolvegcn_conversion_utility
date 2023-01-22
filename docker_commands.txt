@@ -1,0 +1,11 @@
+
+docker build app/ -t pandas_test
+
+cd to folder w/ elliptic data
+docker run -it -v $PWD:/dataset pandas_test
+
+in the container...
+python convert.py
+default args:
+  --source_folder /dataset
+  --dest_folder /dataset/evolvegcn_format

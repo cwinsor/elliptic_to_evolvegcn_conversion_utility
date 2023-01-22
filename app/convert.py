@@ -1,43 +1,21 @@
-r"""Preprocessing utility for Elliptic dataset for use with EvolveGCN.
-
-This code implements preprocessing Step0, 1, 2, 3, 4 identified in:
-https://github.com/IBM/EvolveGCN/blob/master/elliptic_construction.md
-
-The steps convert the Elliptic dataset, downloadable
-from https://www.kaggle.com/ellipticco/elliptic-data-set
-into a format that can be consumed by the EvolveGCN code, specifically,
-the dataloader elliptic_temporal_dl.py in https://github.com/IBM/EvolveGCN. 
-
-To run:
-clone this repo
-download the Elliptic dataset to folder A
-identify a target folder B
-
-run the utility as:
-python convert.py
-
-requires:
-python3
-
-a requirements.txt file is included.
-
-"""
-
-import datetime
 import os
-import time
-from datetime import timedelta
-import logging
-
-
 import pandas as pd
+import argparse
+
 
 def get_args_parser(add_help=True):
-    import argparse
-    parser = argparse.ArgumentParser(description="PyTorch Detection Training", add_help=add_help)
 
-    parser.add_argument("--source_folder", default="/folder_with_elliptic_dataset", type=str, help="source folder having elliptic dataset")
-    parser.add_argument("--dest_folder", default="/folder_for_converted_dataset", type=str, help="target folder for converted dataset")
+    parser = argparse.ArgumentParser(
+        description="PyTorch Detection Training",
+        add_help=add_help)
+
+    parser.add_argument("--source_folder",
+        default="/dataset",
+        type=str, help="source folder having elliptic dataset")
+
+    parser.add_argument("--dest_folder",
+        default="/dataset/evolvegcn_format",
+        type=str, help="target folder for converted dataset")
 
     return parser
 
@@ -45,7 +23,10 @@ def get_args_parser(add_help=True):
 def main(args):
 
     for k, v in dict(vars(args)).items():
-        print("{} {}".format(k,v))
+        print("{} {}".format(k, v))
+
+    if not os.path.exists(args.dest_folder):
+        os.makedirs(args.dest_folder)
 
     ################
     print("Step 1: Create a file named elliptic_txs_orig2contiguos.csv and modify elliptic_txs_features.csv")
@@ -57,7 +38,8 @@ def main(args):
 
     num_feature_colums = len(elliptic_txs_features.columns)
     expected = 167
-    assert num_feature_colums==expected, ("feature columns expected {} observed {}".format(expected, num_feature_colums))
+    assert num_feature_colums == expected, \
+        ("feature columns expected {} observed {}".format(expected, num_feature_colums))
 
     to_float = lambda x: x[0].astype(float)
     elliptic_txs_features['node_id_original'] = elliptic_txs_features[0]
@@ -69,14 +51,14 @@ def main(args):
     elliptic_txs_features[0] = elliptic_txs_features['node_id_zerobased_float']
     elliptic_txs_features[1] = elliptic_txs_features['timestep_float']
 
-    elliptic_txs_orig2contiguos = elliptic_txs_features[["node_id_original","node_id_zerobased_int"]]
+    elliptic_txs_orig2contiguos = elliptic_txs_features[["node_id_original", "node_id_zerobased_int"]]
     elliptic_txs_orig2contiguos.rename(columns={
-        "node_id_original" : "originalId",
-        "node_id_zerobased_int" : "contiguosId"},
+        "node_id_original": "originalId",
+        "node_id_zerobased_int": "contiguosId"},
         inplace=True)
 
     # write to file
-    elliptic_txs_features.iloc[:,0:num_feature_colums].to_csv(
+    elliptic_txs_features.iloc[:, 0:num_feature_colums].to_csv(
         os.path.join(args.dest_folder, "elliptic_txs_features.csv"),
         header=False, index=False)
 
@@ -100,28 +82,28 @@ def main(args):
     # elliptic_txs_classes = elliptic_txs_classes.loc[0:10,:].copy()
 
     elliptic_txs_classes.rename(columns={
-        "txId" : "old_txId",
-        "class" : "old_class"},
+        "txId": "old_txId",
+        "class": "old_class"},
         inplace=True)
 
-    map_class = lambda x: -1.0 if x[0]=="unknown" else (1.0 if x[0]=="1" else (0.0 if x[0]=="2" else ("yuk")))
-    elliptic_txs_classes['class'] = elliptic_txs_classes.loc[:,['old_class']].apply(map_class, axis=1)
+    map_class = lambda x: -1.0 if x[0] == "unknown" else (1.0 if x[0] == "1" else (0.0 if x[0] == "2" else ("yuk")))
+    elliptic_txs_classes['class'] = elliptic_txs_classes.loc[:, ['old_class']].apply(map_class, axis=1)
     elliptic_txs_classes['txId'] = elliptic_txs_classes[['old_txId']].apply(map_node_id, axis=1)
 
     # write to file
-    elliptic_txs_classes.loc[:,['txId','class']].to_csv(
+    elliptic_txs_classes.loc[:, ['txId', 'class']].to_csv(
         os.path.join(args.dest_folder, "elliptic_txs_classes.csv"),
         header=True, index=False)
 
     ################
     print("Step 3: Create a file named elliptic_txs_nodetime.csv")
-    elliptic_txs_nodetime = elliptic_txs_features[['node_id_zerobased_int','timestep_int']]
+    elliptic_txs_nodetime = elliptic_txs_features[['node_id_zerobased_int', 'timestep_int']]
     elliptic_txs_nodetime.rename(columns={
-        "node_id_zerobased_int" : "txId",
-        "timestep_int" : "timestep"},
+        "node_id_zerobased_int": "txId",
+        "timestep_int": "timestep"},
         inplace=True)
 
-    minus_one = lambda x: x[0]-1
+    minus_one = lambda x: x[0] - 1
     elliptic_txs_nodetime['timestep'] = elliptic_txs_nodetime[["timestep"]].apply(minus_one, axis=1)
 
     # write to file
@@ -137,8 +119,8 @@ def main(args):
     # elliptic_txs_edgelist_timed = elliptic_txs_edgelist_timed.loc[0:10,:].copy()
 
     elliptic_txs_edgelist_timed.rename(columns={
-        "txId1" : "old_txId1",
-        "txId2" : "old_txId2"},
+        "txId1": "old_txId1",
+        "txId2": "old_txId2"},
         inplace=True)
 
     elliptic_txs_edgelist_timed['txId1'] = elliptic_txs_edgelist_timed[['old_txId1']].apply(map_node_id, axis=1)
@@ -149,23 +131,29 @@ def main(args):
         keys='node_id_zerobased_int',
         inplace=True, verify_integrity=True)
 
-    get_timestep_float = lambda x: elliptic_txs_features.loc[x[0]]["timestep_float"]
-    get_timestep_check = lambda x: (
-        elliptic_txs_features.loc[x[0]]["timestep_int"] !=
-        elliptic_txs_features.loc[x[1]]["timestep_int"])
+    # sanity check - nodes specified by edge should have the same timestep
+    get_timestep_int = lambda x: elliptic_txs_features.loc[x[0]]["timestep_int"]
+    elliptic_txs_edgelist_timed['timestep1_int'] = elliptic_txs_edgelist_timed[['txId1']].apply(get_timestep_int, axis=1)
+    elliptic_txs_edgelist_timed['timestep2_int'] = elliptic_txs_edgelist_timed[['txId2']].apply(get_timestep_int, axis=1)
+    elliptic_txs_edgelist_timed['ts_are_different'] = elliptic_txs_edgelist_timed['timestep1_int'] != elliptic_txs_edgelist_timed['timestep2_int']
+    if elliptic_txs_edgelist_timed['ts_are_different'].any():
+        df = elliptic_txs_edgelist_timed
+        print("count total: {}".format(df.shape[0]))
+        select = df['not_equal']
+        print("count of mismatches = {}".format(df[select].shape[0]))
+        print(df[select])
+        assert df['not_equal'].any() is False, "yikes - fails check that adjacent nodes will have same timestep"
 
+    # they want float timestep - whatever.
+    get_timestep_float = lambda x: elliptic_txs_features.loc[x[0]]["timestep_float"]
     elliptic_txs_edgelist_timed['timestep'] = elliptic_txs_edgelist_timed[['txId1']].apply(get_timestep_float, axis=1)
-    # sanity check nodes sharing an edge should have the same timestep
-    elliptic_txs_edgelist_timed['not_equal'] = elliptic_txs_edgelist_timed[['txId1', 'txId2' ]].apply(get_timestep_check, axis=1)
-    assert elliptic_txs_edgelist_timed['not_equal'].any()==False, "yikes - fails check that adjacent nodes will have same timestep"
 
     # write to file
-    elliptic_txs_edgelist_timed[['txId1','txId2','timestep']].to_csv(
+    elliptic_txs_edgelist_timed[['txId1', 'txId2', 'timestep']].to_csv(
         os.path.join(args.dest_folder, "elliptic_txs_edgelist_timed.csv"),
         header=True, index=False)
 
     print('done')
-
 
 
 if __name__ == "__main__":
