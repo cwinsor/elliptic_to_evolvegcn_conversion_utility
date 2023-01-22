@@ -52,10 +52,9 @@ def main(args):
     elliptic_txs_features[1] = elliptic_txs_features['timestep_float']
 
     elliptic_txs_orig2contiguos = elliptic_txs_features[["node_id_original", "node_id_zerobased_int"]]
-    elliptic_txs_orig2contiguos.rename(columns={
+    elliptic_txs_orig2contiguos = elliptic_txs_orig2contiguos.rename(columns={
         "node_id_original": "originalId",
-        "node_id_zerobased_int": "contiguosId"},
-        inplace=True)
+        "node_id_zerobased_int": "contiguosId"})
 
     # write to file
     elliptic_txs_features.iloc[:, 0:num_feature_colums].to_csv(
@@ -98,10 +97,9 @@ def main(args):
     ################
     print("Step 3: Create a file named elliptic_txs_nodetime.csv")
     elliptic_txs_nodetime = elliptic_txs_features[['node_id_zerobased_int', 'timestep_int']]
-    elliptic_txs_nodetime.rename(columns={
+    elliptic_txs_nodetime = elliptic_txs_nodetime.rename(columns={
         "node_id_zerobased_int": "txId",
-        "timestep_int": "timestep"},
-        inplace=True)
+        "timestep_int": "timestep"})
 
     minus_one = lambda x: x[0] - 1
     elliptic_txs_nodetime['timestep'] = elliptic_txs_nodetime[["timestep"]].apply(minus_one, axis=1)
@@ -113,6 +111,7 @@ def main(args):
 
     ################
     print("Step 4: Modify elliptic_txs_edgelist.csv and rename it to elliptic_txs_edgelist_timed.csv")
+    print("this takes a while - about 5x above...")
     elliptic_txs_edgelist_timed = pd.read_csv(
         os.path.join(args.source_folder, "elliptic_txs_edgelist.csv"),
         header=0)
@@ -153,7 +152,7 @@ def main(args):
         os.path.join(args.dest_folder, "elliptic_txs_edgelist_timed.csv"),
         header=True, index=False)
 
-    print('done')
+    print("done - results in {}".format(os.path.join(args.dest_folder)))
 
 
 if __name__ == "__main__":
