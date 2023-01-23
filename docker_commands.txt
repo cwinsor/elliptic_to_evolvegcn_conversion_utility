@@ -1,11 +1,24 @@
 
-docker build app/ -t pandas_test
+WORKFLOW...
 
+DEV:
+git clone https://github.com/cwinsor/elliptic_to_evolvegcn_conversion_utility.git
+cd elliptic_to_evolvegcn_conversion_utility
+<make changes>
+docker build app/ -t cwinsor2/elliptic_to_evolvegcn
+<tag...?> docker build app/ -t cwinsor2/elliptic_to_evolvegcn:v1.2.3
+
+USER:
 cd to folder w/ elliptic data
-docker run -it -v $PWD:/dataset pandas_test
-
+docker run -it -v $PWD:/dataset elliptic_to_evolvegcn
 in the container...
 python convert.py
-default args:
-  --source_folder /dataset
-  --dest_folder /dataset/evolvegcn_format
+exit
+ls ./evolvegcn_format/
+
+RELEASE ON DOCKER:
+docker push cwinsor2/elliptic_to_evolvegcn
+<with tag...?>docker push cwinsor2/elliptic_to_evolvegcn:v1.2.3
+
+GIT PUSH:
+git add/commit/push as usual...

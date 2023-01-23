@@ -111,7 +111,7 @@ def main(args):
 
     ################
     print("Step 4: Modify elliptic_txs_edgelist.csv and rename it to elliptic_txs_edgelist_timed.csv")
-    print("this takes a while - about 5x above...")
+    print("this takes a while - about 10x above...")
     elliptic_txs_edgelist_timed = pd.read_csv(
         os.path.join(args.source_folder, "elliptic_txs_edgelist.csv"),
         header=0)
@@ -153,6 +153,7 @@ def main(args):
         header=True, index=False)
 
     print("done - results in {}".format(os.path.join(args.dest_folder)))
+    print("don't forget to 'exit' the container")
 
 
 if __name__ == "__main__":

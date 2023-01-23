@@ -23,6 +23,18 @@
                 "--source_folder", "/home/chris/documents/dataset_elliptic",
                 "--dest_folder",   "/home/chris/documents/dataset_elliptic/evolvegcn_dev",
             ]
+        },
+        {
+            "name": "test_01",
+            "type": "python",
+            "request": "launch",
+            "program": "app/test_01.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--elliptic_folder", "/home/chris/documents/dataset_elliptic",
+                "--evolve_folder",   "/home/chris/documents/dataset_elliptic/evolvegcn_format",
+            ]
     },
     ]
 }
